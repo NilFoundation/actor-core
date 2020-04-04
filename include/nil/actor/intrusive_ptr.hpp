@@ -16,6 +16,8 @@
 #include <string>
 #include <type_traits>
 
+#include <boost/intrusive_ptr.hpp>
+
 #include <nil/actor/detail/append_hex.hpp>
 #include <nil/actor/detail/comparable.hpp>
 #include <nil/actor/detail/type_traits.hpp>
