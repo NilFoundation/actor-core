@@ -44,9 +44,6 @@ namespace nil {
             template<class, class, int>
             friend class actor_cast_access;
 
-            // tell actor_cast which semantic this type uses
-            static constexpr bool has_weak_ptr_semantics = false;
-
             actor() = default;
             actor(actor &&) = default;
             actor(const actor &) = default;
@@ -159,6 +156,11 @@ namespace nil {
             actor(actor_control_block *);
 
             strong_actor_ptr ptr_;
+        };
+
+        template<>
+        struct has_weak_ptr_semantics<actor> {
+            constexpr static const bool value = false;
         };
 
         /// Combine `f` and `g` so that `(f*g)(x) = f(g(x))`.

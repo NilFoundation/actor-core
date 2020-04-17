@@ -64,9 +64,6 @@ namespace nil {
             template<class, class, int>
             friend class actor_cast_access;
 
-            // tell actor_cast which semantic this type uses
-            static constexpr bool has_weak_ptr_semantics = false;
-
             /// Creates a new `typed_actor` type by extending this one with `Es...`.
             template<class... Es>
             using extend = typed_actor<Sigs..., Es...>;
@@ -255,6 +252,11 @@ namespace nil {
             }
 
             strong_actor_ptr ptr_;
+        };
+
+        template<typename... T>
+        struct has_weak_ptr_semantics<typed_actor<T...>> {
+            constexpr static const bool value = false;
         };
 
         /// @relates typed_actor

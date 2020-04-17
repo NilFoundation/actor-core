@@ -30,9 +30,6 @@ namespace nil {
 
             using signatures = none_t;
 
-            // tell actor_cast which semantic this type uses
-            static constexpr bool has_weak_ptr_semantics = false;
-
             scoped_actor(spawner &sys, bool hide = false);
 
             scoped_actor(const scoped_actor &) = delete;
@@ -73,6 +70,11 @@ namespace nil {
             actor_id prev_;    // used for logging/debugging purposes only
             scoped_execution_unit context_;
             strong_actor_ptr self_;
+        };
+
+        template<>
+        struct has_weak_ptr_semantics<scoped_actor> {
+            constexpr static const bool value = false;
         };
 
         /// @relates scoped_actor

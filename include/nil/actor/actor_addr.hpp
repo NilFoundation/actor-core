@@ -39,9 +39,6 @@ namespace nil {
             template<class, class, int>
             friend class actor_cast_access;
 
-            // tell actor_cast which semantic this type uses
-            static constexpr bool has_weak_ptr_semantics = true;
-
             actor_addr() = default;
             actor_addr(actor_addr &&) = default;
             actor_addr(const actor_addr &) = default;
@@ -131,6 +128,11 @@ namespace nil {
             actor_addr(actor_control_block *);
 
             weak_actor_ptr ptr_;
+        };
+
+        template<>
+        struct has_weak_ptr_semantics<actor_addr> {
+            constexpr static const bool value = true;
         };
 
         inline bool operator==(const actor_addr &x, std::nullptr_t) {
