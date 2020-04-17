@@ -13,8 +13,8 @@ include(CMConfig)
 include(CMDeploy)
 include(CMSetupVersion)
 
-if(NOT CMAKE_WORKSPACE_NAME OR NOT ("${CMAKE_WORKSPACE_NAME}" STREQUAL "mtl"))
-    cm_workspace(mtl)
+if(NOT CMAKE_WORKSPACE_NAME OR NOT ("${CMAKE_WORKSPACE_NAME}" STREQUAL "actor"))
+    cm_workspace(actor)
 endif()
 
 macro(cm_find_package NAME)
@@ -25,9 +25,9 @@ macro(cm_find_package NAME)
     endif()
 endmacro()
 
-cm_project(actor WORKSPACE_NAME ${CMAKE_WORKSPACE_NAME} LANGUAGES C CXX)
+cm_project(core WORKSPACE_NAME ${CMAKE_WORKSPACE_NAME} LANGUAGES C CXX)
 
-cm_setup_version(VERSION 0.16.0)
+cm_setup_version(VERSION 0.18.0)
 
 if(NOT Boost_FOUND)
     cm_find_package(Boost COMPONENTS chrono program_options random system thread)
@@ -184,8 +184,7 @@ set(${CURRENT_PROJECT_NAME}_SOURCES
     src/tracing_data_factory.cpp
     src/type_id_list.cpp
     src/uri.cpp
-    src/uri_builder.cpp
-    )
+    src/uri_builder.cpp)
 
 # configure build_config.hpp header
 configure_file("${CMAKE_CURRENT_SOURCE_DIR}/cmake/build_config.hpp.in"
