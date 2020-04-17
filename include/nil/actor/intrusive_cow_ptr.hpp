@@ -130,12 +130,6 @@ namespace nil {
                 return ptr_.detach();
             }
 
-            /// Returns the raw pointer without modifying reference
-            /// count and sets this to `nullptr`.
-            pointer release() noexcept {
-                return ptr_.release();
-            }
-
             /// Forces a copy of the managed object unless it already has a reference
             /// count of exactly 1.
             void unshare() {

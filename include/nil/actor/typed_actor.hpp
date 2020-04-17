@@ -243,8 +243,8 @@ namespace nil {
                 return ptr_.get();
             }
 
-            actor_control_block *release() noexcept {
-                return ptr_.release();
+            actor_control_block *detach() noexcept {
+                return ptr_.detach();
             }
 
             typed_actor(actor_control_block *ptr) : ptr_(ptr) {

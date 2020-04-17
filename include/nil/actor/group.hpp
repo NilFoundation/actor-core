@@ -116,7 +116,7 @@ namespace nil {
 
         private:
             abstract_group *release() noexcept {
-                return ptr_.release();
+                return ptr_.detach();
             }
 
             group(abstract_group *, bool);

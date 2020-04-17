@@ -92,12 +92,6 @@ namespace nil::actor {
             return result;
         }
 
-        /// Returns the raw pointer without modifying reference
-        /// count and sets this to `nullptr`.
-        pointer release() noexcept {
-            return detach();
-        }
-
         void reset(pointer new_value = nullptr, bool add_ref = true) noexcept {
             auto old = ptr_;
             set_ptr(new_value, add_ref);

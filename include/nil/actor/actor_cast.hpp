@@ -140,7 +140,7 @@ namespace nil::actor {
         }
 
         To operator()(From &&x) const {
-            return {x.release(), false};
+            return {x.detach(), false};
         }
     };
 
@@ -162,5 +162,4 @@ namespace nil::actor {
         actor_cast_access<T, from_type, x * y> f;
         return f(std::forward<U>(what));
     }
-
 }    // namespace nil::actor
