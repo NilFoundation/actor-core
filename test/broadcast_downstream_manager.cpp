@@ -128,7 +128,7 @@ namespace {
         }
 
         size_t credit_for(entity &x) {
-            auto pred = [&](outbound_path *ptr) { return ptr->hdl == &x; };
+            auto pred = [&](outbound_path *ptr) { return ptr->hdl == reinterpret_cast<actor_control_block *>(&x); };
             auto i = std::find_if(paths.begin(), paths.end(), pred);
             BOOST_REQUIRE(i != paths.end());
             return static_cast<size_t>((*i)->open_credit);
@@ -165,7 +165,7 @@ namespace {
     };
 
     // Needed by `some` macro.
-    struct not_empty_t {};
+    struct not_empty_t { };
 
     constexpr auto some = not_empty_t {};
 

@@ -66,7 +66,7 @@ namespace nil {
 
             intrusive_cow_ptr(intrusive_cow_ptr &&) noexcept = default;
 
-            intrusive_cow_ptr(const intrusive_cow_ptr &) noexcept = default;
+            intrusive_cow_ptr(const intrusive_cow_ptr &) = default;
 
             intrusive_cow_ptr(std::nullptr_t) noexcept {
                 // nop
@@ -87,7 +87,7 @@ namespace nil {
 
             intrusive_cow_ptr &operator=(intrusive_cow_ptr &&) noexcept = default;
 
-            intrusive_cow_ptr &operator=(const intrusive_cow_ptr &) noexcept = default;
+            intrusive_cow_ptr &operator=(const intrusive_cow_ptr &) = default;
 
             intrusive_cow_ptr &operator=(counting_pointer x) noexcept {
                 ptr_ = std::move(x);
@@ -139,7 +139,8 @@ namespace nil {
 
             /// Returns a mutable pointer to the managed object.
             pointer unshared_ptr() {
-                return intrusive_cow_ptr_unshare(ptr_.ptr_);
+                pointer p = ptr_.get();
+                return intrusive_cow_ptr_unshare(p);
             }
 
             /// Returns a mutable reference to the managed object.

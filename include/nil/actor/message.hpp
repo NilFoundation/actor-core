@@ -43,11 +43,11 @@ namespace nil {
 
             message(message &&) noexcept = default;
 
-            message(const message &) noexcept = default;
+            message(const message &) = default;
 
             message &operator=(message &&) noexcept = default;
 
-            message &operator=(const message &) noexcept = default;
+            message &operator=(const message &) = default;
 
             // -- properties -------------------------------------------------------------
 
