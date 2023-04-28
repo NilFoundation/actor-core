@@ -49,3 +49,25 @@
     void name::do_run_test_case()
 
 #define ACTOR_THREAD_TEST_CASE(name) ACTOR_THREAD_TEST_CASE_EXPECTED_FAILURES(name, 0)
+
+#define ACTOR_FIXTURE_TEST_CASE_EXPECTED_FAILURES(name, fixture, failures)      \
+    struct name : public nil::actor::testing::actor_test, public fixture {            \
+        const char *get_test_file() override {                        \
+            return __FILE__;                                          \
+        }                                                             \
+        const char *get_name() override {                             \
+            return #name;                                             \
+        }                                                             \
+        int get_expected_failures() override {                        \
+            return failures;                                          \
+        }                                                             \
+        nil::actor::future<> run_test_case() override {               \
+            return nil::actor::async([this] { do_run_test_case(); }); \
+        }                                                             \
+        void do_run_test_case();                                      \
+    };                                                                \
+    static name name##_instance;                                      \
+    void name::do_run_test_case()
+
+#define ACTOR_FIXTURE_TEST_CASE(name, fixture) ACTOR_FIXTURE_TEST_CASE_EXPECTED_FAILURES(name, fixture, 0)
+
