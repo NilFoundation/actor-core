@@ -51,4 +51,7 @@
 struct dump_fixture {};
 
 #define ACTOR_FIXTURE_TEST_CASE(name, fixture) ACTOR_FIXTURE_TEST_CASE_EXPECTED_FAILURES(name, fixture, 0)
+
 #define ACTOR_THREAD_TEST_CASE(name) ACTOR_FIXTURE_TEST_CASE_EXPECTED_FAILURES(name, dump_fixture, 0)
+
+#define ACTOR_THREAD_TEST_CASE_EXPECTED_FAILURES(name, failures) ACTOR_FIXTURE_TEST_CASE_EXPECTED_FAILURES(name, dump_fixture, failures)
