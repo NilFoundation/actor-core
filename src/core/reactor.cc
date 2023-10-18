@@ -3936,7 +3936,7 @@ namespace nil {
                 rc.assign_orphan_cpus = true;
             }
 #endif
-            rc.shard0scale = configuration["shard0-mem-scale"].as<size_t>();
+            rc.shard0scale = 48 * 16; // configuration["shard0-mem-scale"].as<size_t>();
 
             auto resources = resource::allocate(rc);
             std::vector<resource::cpu> allocations = std::move(resources.cpus);
