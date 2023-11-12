@@ -158,7 +158,7 @@ namespace nil {
                 }
 
                 // the path is guaranteed to start with '0::/'
-                return boost::filesystem::path {"/sys/fs/cgroup/" + cline.substr(4)};
+                return boost::filesystem::path {std::string("/sys/fs/cgroup/") + cline.substr(4).c_str()};
             }
 
             /*
