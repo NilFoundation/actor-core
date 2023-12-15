@@ -196,7 +196,7 @@ namespace nil {
 
             static void on_allocation_failure(size_t size);
 
-            static constexpr unsigned cpu_id_shift = 38;    // FIXME: make dynamic
+            static constexpr unsigned cpu_id_shift = 37;    // FIXME: make dynamic
             static constexpr unsigned max_cpus = 256;
             static constexpr uintptr_t cpu_id_and_mem_base_mask = ~((uintptr_t(1) << cpu_id_shift) - 1);
 

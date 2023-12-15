@@ -498,9 +498,9 @@ namespace nil {
                 if (procs > available_procs) {
                     throw std::runtime_error("insufficient processing units");
                 }
-                // limit memory address to fit in 36-bit, see core/memory.cc:Memory map
-                constexpr size_t max_mem_per_proc = 1UL << 38;
-                auto mem_per_proc = std::min(align_down<size_t>(mem / (procs + 48 * 16 - 1), 2 << 20), max_mem_per_proc);
+                // limit memory address to fit in 37-bit, see core/memory.cc:Memory map
+                constexpr size_t max_mem_per_proc = 1UL << 37;
+                auto mem_per_proc = std::min(align_down<size_t>(mem / (procs + c.shard0scale - 1), 2 << 20), max_mem_per_proc);
                 resources ret;
                 std::unordered_map<unsigned, hwloc_obj_t> cpu_to_node;
                 std::vector<unsigned> orphan_pus;
@@ -580,7 +580,7 @@ namespace nil {
                     cpu this_cpu;
                     this_cpu.cpu_id = cpu_id;
                     if (cpu_id == 0) {
-                        remain = mem_per_proc * 48 * 16 - alloc_from_node(this_cpu, node, topo_used_mem, mem_per_proc * 48 * 16);
+                        remain = mem_per_proc * c.shard0scale - alloc_from_node(this_cpu, node, topo_used_mem, mem_per_proc * c.shard0scale);
                     } else {
                         remain = mem_per_proc - alloc_from_node(this_cpu, node, topo_used_mem, mem_per_proc);
                     }
