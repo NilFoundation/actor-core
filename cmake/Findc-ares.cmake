@@ -1,3 +1,13 @@
+# Support preference of static libs by adjusting CMAKE_FIND_LIBRARY_SUFFIXES
+if(c-ares_PC_STATIC_LIBS)
+    set(_c_ares_ORIG_CMAKE_FIND_LIBRARY_SUFFIXES ${CMAKE_FIND_LIBRARY_SUFFIXES})
+    if(WIN32)
+        set(CMAKE_FIND_LIBRARY_SUFFIXES .lib .a ${CMAKE_FIND_LIBRARY_SUFFIXES})
+    else()
+        set(CMAKE_FIND_LIBRARY_SUFFIXES .a)
+    endif()
+endif()
+
 find_package(PkgConfig REQUIRED)
 
 pkg_check_modules(c-ares_PC libcares)
@@ -37,3 +47,9 @@ if(c-ares_FOUND AND NOT (TARGET c-ares::c-ares))
                           IMPORTED_LOCATION ${c-ares_LIBRARY}
                           INTERFACE_INCLUDE_DIRECTORIES ${c-ares_INCLUDE_DIRS})
 endif()
+
+# Restore the original find library ordering
+if(c-ares_PC_STATIC_LIBS)
+    set(CMAKE_FIND_LIBRARY_SUFFIXES ${_c_ares_ORIG_CMAKE_FIND_LIBRARY_SUFFIXES})
+endif()
+

@@ -1,3 +1,12 @@
+# Support preference of static libs by adjusting CMAKE_FIND_LIBRARY_SUFFIXES
+if(yaml-cpp_PC_STATIC_LIBS)
+    set(_yaml_cpp_ORIG_CMAKE_FIND_LIBRARY_SUFFIXES ${CMAKE_FIND_LIBRARY_SUFFIXES})
+    if(WIN32)
+        set(CMAKE_FIND_LIBRARY_SUFFIXES .lib .a ${CMAKE_FIND_LIBRARY_SUFFIXES})
+    else()
+        set(CMAKE_FIND_LIBRARY_SUFFIXES .a)
+    endif()
+endif()
 
 find_package(PkgConfig REQUIRED)
 
@@ -39,3 +48,9 @@ if(yaml-cpp_FOUND AND NOT (TARGET yaml-cpp::yaml-cpp))
                           IMPORTED_LOCATION ${yaml-cpp_LIBRARY}
                           INTERFACE_INCLUDE_DIRECTORIES ${yaml-cpp_INCLUDE_DIRS})
 endif()
+
+# Restore the original find library ordering
+if(yaml-cpp_PC_STATIC_LIBS)
+    set(CMAKE_FIND_LIBRARY_SUFFIXES ${_yaml_cpp_ORIG_CMAKE_FIND_LIBRARY_SUFFIXES})
+endif()
+

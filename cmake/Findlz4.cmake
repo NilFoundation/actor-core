@@ -1,3 +1,13 @@
+# Support preference of static libs by adjusting CMAKE_FIND_LIBRARY_SUFFIXES
+if(lz4_PC_STATIC_LIBS)
+    set(_lz4_ORIG_CMAKE_FIND_LIBRARY_SUFFIXES ${CMAKE_FIND_LIBRARY_SUFFIXES})
+    if(WIN32)
+        set(CMAKE_FIND_LIBRARY_SUFFIXES .lib .a ${CMAKE_FIND_LIBRARY_SUFFIXES})
+    else()
+        set(CMAKE_FIND_LIBRARY_SUFFIXES .a)
+    endif()
+endif()
+
 find_package(PkgConfig REQUIRED)
 
 pkg_search_module(lz4_PC liblz4)
@@ -46,3 +56,9 @@ if(lz4_FOUND AND NOT (TARGET lz4::lz4))
                           IMPORTED_LOCATION ${lz4_LIBRARY}
                           INTERFACE_INCLUDE_DIRECTORIES ${lz4_INCLUDE_DIRS})
 endif()
+
+# Restore the original find library ordering
+if(lz4_PC_STATIC_LIBS)
+    set(CMAKE_FIND_LIBRARY_SUFFIXES ${_lz4_ORIG_CMAKE_FIND_LIBRARY_SUFFIXES})
+endif()
+
