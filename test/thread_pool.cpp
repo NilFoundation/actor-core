@@ -1,5 +1,6 @@
 //---------------------------------------------------------------------------//
-// Copyright (c) 2018-2021 Mikhail Komarov <nemo@nil.foundation>
+// 
+// Copyright (c) 2024 Martun Karapetyan <martun@nil.foundation>
 //
 // MIT License
 //
@@ -22,24 +23,42 @@
 // SOFTWARE.
 //---------------------------------------------------------------------------//
 
-#pragma once
+#define BOOST_TEST_MODULE thread_pool_test
 
-namespace nil {
-    namespace actor {
-        namespace testing {
+#include <vector>
+#include <cstdint>
 
-            // Disables aborting in on_internal_error() for a scope.
-            //
-            // Intended for tests, which want to test error paths that invoke
-            // on_internal_error() without aborting, at the same time, having it enabled
-            // for other, indirectly affected code paths, that are not a direct target of
-            // the test.
-            class scoped_no_abort_on_internal_error {
-            public:
-                scoped_no_abort_on_internal_error();
-                ~scoped_no_abort_on_internal_error();
-            };
+#include <boost/test/unit_test.hpp>
+#include <boost/test/data/test_case.hpp>
+#include <boost/test/data/monomorphic.hpp>
 
-        }    // namespace testing
-    }        // namespace actor
-}    // namespace nil
+#include <nil/actor/core/thread_pool.hpp>
+
+using namespace nil::crypto3::algebra;
+using namespace nil::crypto3::math;
+
+BOOST_AUTO_TEST_SUITE(thread_pool_test_suite)
+
+BOOST_AUTO_TEST_CASE(vector_multiplication_test) {
+    size_t size = 131072;
+
+    std::vector<int> v(size);
+
+    for (int i = 0; i < size; ++i)
+        v[i] = i;
+
+    nil::crypto3::wait_for_all(
+        nil::crypto3::ThreadPool::get_instance(nil::crypto3::ThreadPool::PoolLevel::HIGH).block_execution<void>(
+            size,
+            [&v](std::size_t begin, std::size_t end) {
+                for (std::size_t i = begin; i < end; i++) {
+                    v[i] *= v[i];
+                }
+            }));
+
+    for (int i = 0; i < size; ++i) {
+        BOOST_CHECK(v[i] == i * i);
+    }
+}
+
+BOOST_AUTO_TEST_SUITE_END()
