@@ -40,13 +40,11 @@ include(CMDeploy)
 include(FindPkgConfig)
 
 option(BUILD_WITH_CCACHE "Build with ccache usage" TRUE)
-option(BUILD_TESTS "Build unit tests" FALSE)
 
 if(UNIX AND BUILD_WITH_CCACHE)
     find_program(CCACHE_FOUND ccache)
     if(CCACHE_FOUND)
-        set_property(GLOBAL PROPERTY RULE_LAUNCH_COMPILE ccache)
-        set_property(GLOBAL PROPERTY RULE_LAUNCH_LINK ccache)
+        set(CMAKE_CXX_COMPILER_LAUNCHER "ccache")
     endif(CCACHE_FOUND)
 endif()
 
@@ -80,5 +78,5 @@ cm_deploy(TARGETS ${CMAKE_WORKSPACE_NAME}_${CURRENT_PROJECT_NAME}
 
 
 if(BUILD_TESTS)
-    add_subdirectory(test)
+    cm_add_test_subdirectory(test)
 endif()

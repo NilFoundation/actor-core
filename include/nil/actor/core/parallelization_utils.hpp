@@ -33,10 +33,53 @@ namespace nil {
     namespace crypto3 {
 
         template<class ReturnType>
-        void wait_for_all(const std::vector<std::future<ReturnType>>& futures) {
+        std::vector<ReturnType> wait_for_all(std::vector<std::future<ReturnType>> futures) {
+            std::vector<ReturnType> results;
             for (auto& f: futures) {
-                f.wait();
+                results.push_back(f.get());
             }
+            return results;
+        }
+
+        inline void wait_for_all(std::vector<std::future<void>> futures) {
+            for (auto& f: futures) {
+                f.get();
+            }
+        }
+
+        // Divides work into chunks and makes calls to 'func' in parallel.
+        template<class ReturnType>
+        std::vector<std::future<ReturnType>> parallel_run_in_chunks(
+                std::size_t elements_count,
+                std::function<ReturnType(std::size_t begin, std::size_t end)> func, 
+                ThreadPool::PoolLevel pool_id = ThreadPool::PoolLevel::LOW) {
+
+            auto& thread_pool = ThreadPool::get_instance(pool_id);
+
+            std::vector<std::future<ReturnType>> fut;
+            std::size_t workers_to_use = std::max((size_t)1, std::min(elements_count, thread_pool.get_pool_size()));
+
+            // For pool #0 we have experimentally found that operations over chunks of <4096 elements
+            // do not load the cores. In case we have smaller chunks, it's better to load less cores.
+            static constexpr std::size_t POOL_0_MIN_CHUNK_SIZE = 1 << 12;
+
+            // Pool #0 will take care of the lowest level of operations, like polynomial operations.
+            // We want the minimal size of elements_per_worker to be 'POOL_0_MIN_CHUNK_SIZE', otherwise the cores are not loaded.
+            if (pool_id == ThreadPool::PoolLevel::LOW && elements_count / workers_to_use < POOL_0_MIN_CHUNK_SIZE) {
+                workers_to_use = elements_count / POOL_0_MIN_CHUNK_SIZE + ((elements_count % POOL_0_MIN_CHUNK_SIZE) ? 1 : 0);
+                workers_to_use = std::max((size_t)1, workers_to_use);
+            }
+            const std::size_t elements_per_worker = elements_count / workers_to_use;
+
+            std::size_t begin = 0;
+            for (std::size_t i = 0; i < workers_to_use; i++) {
+                auto end = begin + (elements_count - begin) / (workers_to_use - i);
+                fut.emplace_back(thread_pool.post<ReturnType>([begin, end, func]() {
+                    return func(begin, end);
+                }));
+                begin = end;
+            }
+            return fut;
         }
 
         // Similar to std::transform, but in parallel. We return void here for better usability for our use cases.
@@ -45,7 +88,7 @@ namespace nil {
                                 OutputIt d_first, BinaryOperation binary_op,
                                 ThreadPool::PoolLevel pool_id = ThreadPool::PoolLevel::LOW) {
 
-            wait_for_all(ThreadPool::get_instance(pool_id).block_execution<void>(
+            wait_for_all(parallel_run_in_chunks<void>(
                 std::distance(first1, last1),
                 // We need the lambda to be mutable, to be able to modify iterators captured by value.
                 [first1, last1, first2, d_first, binary_op](std::size_t begin, std::size_t end) mutable {
@@ -58,7 +101,7 @@ namespace nil {
                         ++first2;
                         ++d_first;
                     }
-                }));
+                }, pool_id));
         }
 
         // Similar to std::transform, but in parallel. We return void here for better usability for our use cases.
@@ -67,7 +110,7 @@ namespace nil {
                                 OutputIt d_first, UnaryOperation unary_op,
                                 ThreadPool::PoolLevel pool_id = ThreadPool::PoolLevel::LOW) {
 
-            wait_for_all(ThreadPool::get_instance(pool_id).block_execution<void>(
+            wait_for_all(parallel_run_in_chunks<void>(
                 std::distance(first1, last1),
                 // We need the lambda to be mutable, to be able to modify iterators captured by value.
                 [first1, last1, d_first, unary_op](std::size_t begin, std::size_t end) mutable {
@@ -78,7 +121,7 @@ namespace nil {
                         ++first1;
                         ++d_first;
                     }
-                }));
+                }, pool_id));
         }
 
         // This one is an optimization, since copying field elements is quite slow.
@@ -88,7 +131,7 @@ namespace nil {
                                          BinaryOperation binary_op,
                                          ThreadPool::PoolLevel pool_id = ThreadPool::PoolLevel::LOW) {
 
-            wait_for_all(ThreadPool::get_instance(pool_id).block_execution<void>(
+            wait_for_all(parallel_run_in_chunks<void>(
                 std::distance(first1, last1),
                 // We need the lambda to be mutable, to be able to modify iterators captured by value.
                 [first1, last1, first2, binary_op](std::size_t begin, std::size_t end) mutable {
@@ -99,7 +142,7 @@ namespace nil {
                         ++first1;
                         ++first2;
                     }
-                }));
+                }, pool_id));
         }
 
         // This one is an optimization, since copying field elements is quite slow.
@@ -108,7 +151,7 @@ namespace nil {
         void parallel_foreach(InputIt first1, InputIt last1, UnaryOperation unary_op,
                               ThreadPool::PoolLevel pool_id = ThreadPool::PoolLevel::LOW) {
 
-            wait_for_all(ThreadPool::get_instance(pool_id).block_execution<void>(
+            wait_for_all(parallel_run_in_chunks<void>(
                 std::distance(first1, last1),
                 // We need the lambda to be mutable, to be able to modify iterators captured by value.
                 [first1, last1, unary_op](std::size_t begin, std::size_t end) mutable {
@@ -117,20 +160,19 @@ namespace nil {
                         unary_op(*first1);
                         ++first1;
                     }
-                }));
+                }, pool_id));
         }
 
         // Calls function func for each value between [start, end).
         inline void parallel_for(std::size_t start, std::size_t end, std::function<void(std::size_t index)> func,
-                          ThreadPool::PoolLevel pool_id = ThreadPool::PoolLevel::LOW) {
-
-            wait_for_all(ThreadPool::get_instance(pool_id).block_execution<void>(
+                                 ThreadPool::PoolLevel pool_id = ThreadPool::PoolLevel::LOW) {
+            wait_for_all(parallel_run_in_chunks<void>(
                 end - start,
                 [start, func](std::size_t range_begin, std::size_t range_end) {
                     for (std::size_t i = start + range_begin; i < start + range_end; i++) {
                         func(i);
                     }
-                }));
+                }, pool_id));
         }
 
     }        // namespace crypto3

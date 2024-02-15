@@ -44,19 +44,18 @@ BOOST_AUTO_TEST_CASE(vector_multiplication_test) {
 
     std::vector<int> v(size);
 
-    for (int i = 0; i < size; ++i)
+    for (std::size_t i = 0; i < size; ++i)
         v[i] = i;
 
-    nil::crypto3::wait_for_all(
-        nil::crypto3::ThreadPool::get_instance(nil::crypto3::ThreadPool::PoolLevel::HIGH).block_execution<void>(
-            size,
-            [&v](std::size_t begin, std::size_t end) {
-                for (std::size_t i = begin; i < end; i++) {
-                    v[i] *= v[i];
-                }
-            }));
+    nil::crypto3::wait_for_all(parallel_run_in_chunks<void>(
+        size,
+        [&v](std::size_t begin, std::size_t end) {
+            for (std::size_t i = begin; i < end; i++) {
+                v[i] *= v[i];
+            }
+        }, nil::crypto3::ThreadPool::PoolLevel::HIGH));
 
-    for (int i = 0; i < size; ++i) {
+    for (std::size_t i = 0; i < size; ++i) {
         BOOST_CHECK(v[i] == i * i);
     }
 }

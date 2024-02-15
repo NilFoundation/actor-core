@@ -52,8 +52,8 @@ namespace nil {
              *  Submission of higher level tasks to low level pool will immediately result in a deadlock.
              */
             static ThreadPool& get_instance(PoolLevel pool_id, std::size_t pool_size = std::thread::hardware_concurrency()) {
-                static ThreadPool instance_for_low_level(PoolLevel::LOW, pool_size);
-                static ThreadPool instance_for_higher_level(PoolLevel::HIGH, pool_size);
+                static ThreadPool instance_for_low_level(pool_size);
+                static ThreadPool instance_for_higher_level(pool_size);
                 
                 if (pool_id == PoolLevel::LOW)
                     return instance_for_low_level;
@@ -78,49 +78,19 @@ namespace nil {
                 pool.join();
             }
 
-            // Divides work into chunks and makes calls to 'func' in parallel.
-            template<class ReturnType>
-            std::vector<std::future<ReturnType>> block_execution(
-                    std::size_t elements_count,
-                    std::function<ReturnType(std::size_t begin, std::size_t end)> func) {
-
-                std::vector<std::future<ReturnType>> fut;
-                std::size_t cpu_usage = std::max((size_t)1, std::min(elements_count, pool_size));
-
-                // Pool #0 will take care of the lowest level of operations, like polynomial operations.
-                // We want the minimal size of elements_per_cpu to be 'POOL_0_MIN_CHUNK_SIZE', otherwise the cores are not loaded.
-                if (pool_id == PoolLevel::LOW && elements_count / cpu_usage < POOL_0_MIN_CHUNK_SIZE) {
-                    cpu_usage = elements_count / POOL_0_MIN_CHUNK_SIZE + ((elements_count % POOL_0_MIN_CHUNK_SIZE) ? 1 : 0);
-                    cpu_usage = std::max((size_t)1, cpu_usage);
-                }
-                const std::size_t elements_per_cpu = elements_count / cpu_usage;
-
-                std::size_t begin = 0;
-                for (std::size_t i = 0; i < cpu_usage; i++) {
-                    auto end = begin + (elements_count - begin) / (cpu_usage - i);
-                    fut.emplace_back(post<ReturnType>([begin, end, func]() {
-                        return func(begin, end);
-                    }));
-                    begin = end;
-                }
-                return fut;
+            std::size_t get_pool_size() const {
+                return pool_size;
             }
 
         private:
-            inline ThreadPool(PoolLevel pool_id, std::size_t pool_size)
+            inline ThreadPool(std::size_t pool_size)
                 : pool(pool_size)
-                , pool_size(pool_size)
-                , pool_id(pool_id) {
+                , pool_size(pool_size)  {
             }
 
             boost::asio::thread_pool pool;
             const std::size_t pool_size;
 
-            const PoolLevel pool_id; 
-
-            // For pool #0 we have experimentally found that operations over chunks of <65536 elements
-            // do not load the cores. In case we have smaller chunks, it's better to load less cores.
-            static constexpr std::size_t POOL_0_MIN_CHUNK_SIZE = 65536;
         };
 
     }        // namespace crypto3
