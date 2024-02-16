@@ -14,6 +14,7 @@ list(APPEND CMAKE_MODULE_PATH
 
 include(CMConfig)
 include(CMSetupVersion)
+include(CMTest)
 
 if(NOT CMAKE_WORKSPACE_NAME OR NOT ("${CMAKE_WORKSPACE_NAME}" STREQUAL "actor"))
     cm_workspace(actor)
@@ -77,6 +78,4 @@ cm_deploy(TARGETS ${CMAKE_WORKSPACE_NAME}_${CURRENT_PROJECT_NAME}
           NAMESPACE ${CMAKE_WORKSPACE_NAME}::)
 
 
-if(BUILD_TESTS)
-    cm_add_test_subdirectory(test)
-endif()
+cm_add_test_subdirectory(test)
